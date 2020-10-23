@@ -260,14 +260,7 @@ def dining_suggestion(intent_request):
         'email': email,
         'phone': phone
     })
-    print("suggestion is: {}".format(suggestion))
-
-    # Send the requests from users to the SQS
-    sqs = boto3.resource('sqs')
-    queue = sqs.get_queue_by_name(QueueName = "DiningConciergeChatbotQueue") # get the URL of SQS
-    if location and cuisine and number_people and date and time and email and phone:
-        queue_response = queue.send_message(MessageBody = suggestion)
-        print("SUCESSFULLY SENDING TO SQS")
+    print("suggestion 1: {}".format(suggestion))
         
     session_attributes['suggestion'] = suggestion
 
@@ -291,9 +284,17 @@ def dining_suggestion(intent_request):
         session_attributes['suggestion'] = suggestion
         return delegate(session_attributes, intent_request['currentIntent']['slots'])
 
-    logger.debug('suggested dinner under={}'.format(suggestion))
+    logger.debug('suggested 2: {}'.format(suggestion))
+    
+    # Send the requests from users to the SQS
+    sqs = boto3.resource('sqs')
+    queue = sqs.get_queue_by_name(QueueName = "DiningConciergeChatbotQueue") # get the URL of SQS
+    if location and cuisine and number_people and date and time and email and phone:
+        queue_response = queue.send_message(MessageBody = suggestion)
+        print("SUCESSFULLY SENDING TO SQS")
 
     try_ex(lambda: session_attributes.pop('suggestion'))
+    
     session_attributes['lastConfirmedReservation'] = suggestion
 
     return close(
